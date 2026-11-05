@@ -1,0 +1,27 @@
+world:
+  name: "Project Elysium"
+  version: "0.1.0"
+  mode: "persistent"
+
+simulation:
+  enabled: true
+  start_day: 1
+  start_hour: 8
+  start_minute: 0
+
+  # 1 real minute = 1 simulation hour
+  time_scale: 60
+
+population:
+  initial_population: 10
+  maximum_population: 10
+
+citizens:
+  autonomous: true
+  memory_enabled: true
+  social_interaction: true
+  goal_system: true
+
+system:
+  log_level: "INFO"
+  autosave_enabled: true

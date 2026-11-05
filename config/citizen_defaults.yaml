@@ -1,0 +1,23 @@
+citizen_defaults:
+
+  personality:
+    curiosity: 50
+    ambition: 50
+    sociability: 50
+    creativity: 50
+    analytical: 50
+
+  needs:
+    energy: 100
+    social: 50
+    knowledge: 50
+    achievement: 50
+
+  memory:
+    enabled: true
+    short_term_limit: 20
+    reflection_enabled: false
+
+  autonomy:
+    enabled: true
+    decision_interval_minutes: 60
