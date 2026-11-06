@@ -1,0 +1,236 @@
+{
+    "population": 10,
+    "maximum_population": 100,
+    "citizens": [
+        {
+            "citizen_id": "CIT-0001",
+            "name": "Arin",
+            "age": 25,
+            "biography": "A curious researcher interested in science and discovery.",
+            "occupation": "Researcher",
+            "personality": {
+                "curiosity": 90,
+                "creativity": 80,
+                "sociability": 45,
+                "discipline": 70,
+                "confidence": 75,
+                "empathy": 65
+            },
+            "needs": {
+                "energy": 100,
+                "hunger": 0,
+                "happiness": 75,
+                "health": 100
+            },
+            "status": "alive",
+            "created_at_world_time": "Year 01 | Month 01 | Day 11 | 01:57:33"
+        },
+        {
+            "citizen_id": "CIT-0002",
+            "name": "Mira",
+            "age": 28,
+            "biography": "An engineer who enjoys designing practical solutions.",
+            "occupation": "Engineer",
+            "personality": {
+                "curiosity": 75,
+                "creativity": 85,
+                "sociability": 60,
+                "discipline": 90,
+                "confidence": 80,
+                "empathy": 55
+            },
+            "needs": {
+                "energy": 100,
+                "hunger": 0,
+                "happiness": 75,
+                "health": 100
+            },
+            "status": "alive",
+            "created_at_world_time": "Year 01 | Month 01 | Day 11 | 01:57:33"
+        },
+        {
+            "citizen_id": "CIT-0003",
+            "name": "Kiran",
+            "age": 32,
+            "biography": "A farmer who values nature and sustainable living.",
+            "occupation": "Farmer",
+            "personality": {
+                "curiosity": 60,
+                "creativity": 65,
+                "sociability": 75,
+                "discipline": 85,
+                "confidence": 70,
+                "empathy": 80
+            },
+            "needs": {
+                "energy": 100,
+                "hunger": 0,
+                "happiness": 75,
+                "health": 100
+            },
+            "status": "alive",
+            "created_at_world_time": "Year 01 | Month 01 | Day 11 | 01:57:33"
+        },
+        {
+            "citizen_id": "CIT-0004",
+            "name": "Elena",
+            "age": 26,
+            "biography": "A teacher who enjoys sharing knowledge.",
+            "occupation": "Teacher",
+            "personality": {
+                "curiosity": 80,
+                "creativity": 75,
+                "sociability": 90,
+                "discipline": 80,
+                "confidence": 75,
+                "empathy": 95
+            },
+            "needs": {
+                "energy": 100,
+                "hunger": 0,
+                "happiness": 75,
+                "health": 100
+            },
+            "status": "alive",
+            "created_at_world_time": "Year 01 | Month 01 | Day 11 | 01:57:33"
+        },
+        {
+            "citizen_id": "CIT-0005",
+            "name": "Noah",
+            "age": 35,
+            "biography": "A builder interested in architecture and construction.",
+            "occupation": "Builder",
+            "personality": {
+                "curiosity": 65,
+                "creativity": 70,
+                "sociability": 55,
+                "discipline": 95,
+                "confidence": 85,
+                "empathy": 60
+            },
+            "needs": {
+                "energy": 100,
+                "hunger": 0,
+                "happiness": 75,
+                "health": 100
+            },
+            "status": "alive",
+            "created_at_world_time": "Year 01 | Month 01 | Day 11 | 01:57:33"
+        },
+        {
+            "citizen_id": "CIT-0006",
+            "name": "Sara",
+            "age": 30,
+            "biography": "A doctor dedicated to improving people's well-being.",
+            "occupation": "Doctor",
+            "personality": {
+                "curiosity": 85,
+                "creativity": 65,
+                "sociability": 80,
+                "discipline": 95,
+                "confidence": 85,
+                "empathy": 95
+            },
+            "needs": {
+                "energy": 100,
+                "hunger": 0,
+                "happiness": 75,
+                "health": 100
+            },
+            "status": "alive",
+            "created_at_world_time": "Year 01 | Month 01 | Day 11 | 01:57:33"
+        },
+        {
+            "citizen_id": "CIT-0007",
+            "name": "Dev",
+            "age": 23,
+            "biography": "An artist who enjoys expressing ideas through creativity.",
+            "occupation": "Artist",
+            "personality": {
+                "curiosity": 80,
+                "creativity": 98,
+                "sociability": 70,
+                "discipline": 55,
+                "confidence": 75,
+                "empathy": 80
+            },
+            "needs": {
+                "energy": 100,
+                "hunger": 0,
+                "happiness": 75,
+                "health": 100
+            },
+            "status": "alive",
+            "created_at_world_time": "Year 01 | Month 01 | Day 11 | 01:57:33"
+        },
+        {
+            "citizen_id": "CIT-0008",
+            "name": "Lina",
+            "age": 29,
+            "biography": "A scientist fascinated by natural phenomena.",
+            "occupation": "Scientist",
+            "personality": {
+                "curiosity": 95,
+                "creativity": 85,
+                "sociability": 55,
+                "discipline": 90,
+                "confidence": 80,
+                "empathy": 70
+            },
+            "needs": {
+                "energy": 100,
+                "hunger": 0,
+                "happiness": 75,
+                "health": 100
+            },
+            "status": "alive",
+            "created_at_world_time": "Year 01 | Month 01 | Day 11 | 01:57:33"
+        },
+        {
+            "citizen_id": "CIT-0009",
+            "name": "Omar",
+            "age": 34,
+            "biography": "A merchant interested in trade and human relationships.",
+            "occupation": "Merchant",
+            "personality": {
+                "curiosity": 70,
+                "creativity": 75,
+                "sociability": 95,
+                "discipline": 80,
+                "confidence": 90,
+                "empathy": 75
+            },
+            "needs": {
+                "energy": 100,
+                "hunger": 0,
+                "happiness": 75,
+                "health": 100
+            },
+            "status": "alive",
+            "created_at_world_time": "Year 01 | Month 01 | Day 11 | 01:57:33"
+        },
+        {
+            "citizen_id": "CIT-0010",
+            "name": "Riya",
+            "age": 24,
+            "biography": "A writer who enjoys stories, history, and culture.",
+            "occupation": "Writer",
+            "personality": {
+                "curiosity": 90,
+                "creativity": 95,
+                "sociability": 65,
+                "discipline": 75,
+                "confidence": 70,
+                "empathy": 85
+            },
+            "needs": {
+                "energy": 100,
+                "hunger": 0,
+                "happiness": 75,
+                "health": 100
+            },
+            "status": "alive",
+            "created_at_world_time": "Year 01 | Month 01 | Day 11 | 01:57:33"
+        }
+    ]
+}

@@ -4,9 +4,15 @@ import time
 
 from rich.console import Console
 from rich.panel import Panel
+from rich.table import Table
 
 from config.settings import ROOT_DIR, load_yaml
+
 from elysium.core.world_clock import WorldClock
+
+from elysium.agents.citizen import Citizen
+from elysium.agents.citizen_factory import CitizenFactory
+from elysium.agents.citizen_registry import CitizenRegistry
 
 
 console = Console()
@@ -40,6 +46,149 @@ def display_world(clock, config):
 
 
 # --------------------------------------------------
+# DISPLAY CITIZEN REGISTRY
+# --------------------------------------------------
+
+def display_citizens(registry: CitizenRegistry):
+
+    table = Table(
+        title="ELYSIUM CITIZEN REGISTRY",
+        border_style="cyan"
+    )
+
+    table.add_column("Citizen ID", style="cyan")
+    table.add_column("Name", style="green")
+    table.add_column("Age", justify="right")
+    table.add_column("Occupation", style="yellow")
+    table.add_column("Status", style="green")
+
+    for citizen in registry.get_all():
+
+        table.add_row(
+            citizen.citizen_id,
+            citizen.name,
+            str(citizen.age),
+            citizen.occupation,
+            citizen.status
+        )
+
+    console.print(table)
+
+    console.print(
+        f"[bold green]TOTAL POPULATION: "
+        f"{registry.population}[/bold green]"
+    )
+
+
+# --------------------------------------------------
+# DISPLAY CITIZEN DETAILS
+# --------------------------------------------------
+
+def display_citizen(citizen: Citizen):
+
+    if citizen is None:
+
+        console.print(
+            "[bold red]Citizen not found.[/bold red]"
+        )
+
+        return
+
+    personality = citizen.personality
+    needs = citizen.needs
+
+    details = (
+        f"[bold cyan]ID:[/bold cyan] {citizen.citizen_id}\n"
+        f"[bold cyan]Name:[/bold cyan] {citizen.name}\n"
+        f"[bold cyan]Age:[/bold cyan] {citizen.age}\n"
+        f"[bold cyan]Occupation:[/bold cyan] {citizen.occupation}\n"
+        f"[bold cyan]Status:[/bold cyan] {citizen.status}\n\n"
+
+        f"[bold yellow]Biography[/bold yellow]\n"
+        f"{citizen.biography}\n\n"
+
+        f"[bold yellow]Personality[/bold yellow]\n"
+        f"Curiosity: {personality.curiosity}\n"
+        f"Creativity: {personality.creativity}\n"
+        f"Sociability: {personality.sociability}\n"
+        f"Discipline: {personality.discipline}\n"
+        f"Confidence: {personality.confidence}\n"
+        f"Empathy: {personality.empathy}\n\n"
+
+        f"[bold yellow]Needs[/bold yellow]\n"
+        f"Energy: {needs.energy}\n"
+        f"Hunger: {needs.hunger}\n"
+        f"Happiness: {needs.happiness}\n"
+        f"Health: {needs.health}\n\n"
+
+        f"[dim]Created: {citizen.created_at_world_time}[/dim]"
+    )
+
+    console.print(
+        Panel(
+            details,
+            title=f"Citizen Profile: {citizen.name}",
+            border_style="green"
+        )
+    )
+
+
+# --------------------------------------------------
+# INITIALIZE CITIZENS
+# --------------------------------------------------
+
+def initialize_citizens(clock, config, save_path):
+
+    population_config = config["population"]
+
+    initial_population = population_config["initial_population"]
+
+    maximum_population = population_config["maximum_population"]
+
+    if initial_population > maximum_population:
+
+        raise ValueError(
+            "Initial population exceeds maximum population"
+        )
+
+    registry = CitizenRegistry.load(
+        save_path,
+        maximum_population
+    )
+
+    # Create the initial population only once.
+    if registry.population == 0:
+
+        world_time = clock.get_status(
+            config["calendar"]["days_per_month"],
+            config["calendar"]["months_per_year"]
+        )
+
+        citizens = CitizenFactory.create_initial_population(
+            count=initial_population,
+            world_time=world_time
+        )
+
+        for citizen in citizens:
+
+            registry.register(citizen)
+
+        registry.save(save_path)
+
+        console.print(
+            "[bold green]Initial population created successfully.[/bold green]"
+        )
+
+    else:
+
+        console.print(
+            "[green]Existing citizen population restored.[/green]"
+        )
+
+    return registry
+
+
+# --------------------------------------------------
 # INITIALIZE ELYSIUM
 # --------------------------------------------------
 
@@ -49,11 +198,19 @@ def initialize_elysium():
 
     world = config["world"]
 
-    save_path = ROOT_DIR / "data" / "world_clock.json"
+    world_clock_path = ROOT_DIR / "data" / "world_clock.json"
+
+    citizen_path = ROOT_DIR / "data" / "citizens.json"
 
     clock = WorldClock.from_config(
         config,
-        save_path
+        world_clock_path
+    )
+
+    registry = initialize_citizens(
+        clock,
+        config,
+        citizen_path
     )
 
     console.print()
@@ -72,7 +229,26 @@ def initialize_elysium():
 
     display_world(clock, config)
 
-    return clock, config, save_path
+    display_citizens(registry)
+
+    return (
+        clock,
+        registry,
+        config,
+        world_clock_path,
+        citizen_path
+    )
+
+
+# --------------------------------------------------
+# SAVE WORLD
+# --------------------------------------------------
+
+def save_world(clock, registry, world_clock_path, citizen_path):
+
+    clock.save(world_clock_path)
+
+    registry.save(citizen_path)
 
 
 # --------------------------------------------------
@@ -88,7 +264,7 @@ def run_simulation():
     parser.add_argument(
         "--once",
         action="store_true",
-        help="Initialize and display the clock once"
+        help="Initialize and display the world once"
     )
 
     parser.add_argument(
@@ -109,45 +285,72 @@ def run_simulation():
         help="Set simulation speed"
     )
 
+    parser.add_argument(
+        "--citizens",
+        action="store_true",
+        help="Display all citizens"
+    )
+
+    parser.add_argument(
+        "--citizen",
+        type=str,
+        help="Display a citizen by ID"
+    )
+
     args = parser.parse_args()
 
     if args.pause and args.resume:
-        parser.error("--pause and --resume cannot be used together")
 
-    clock, config, save_path = initialize_elysium()
+        parser.error(
+            "--pause and --resume cannot be used together"
+        )
+
+    (
+        clock,
+        registry,
+        config,
+        world_clock_path,
+        citizen_path
+    ) = initialize_elysium()
 
     # ----------------------------------------------
-    # PAUSE CONTROL
+    # PAUSE
     # ----------------------------------------------
 
     if args.pause:
 
         clock.pause()
 
-        clock.save(save_path)
+        save_world(
+            clock,
+            registry,
+            world_clock_path,
+            citizen_path
+        )
 
         display_world(clock, config)
-
-        console.print(
-            "[yellow]World is paused and saved.[/yellow]"
-        )
 
         return
 
     # ----------------------------------------------
-    # RESUME CONTROL
+    # RESUME
     # ----------------------------------------------
 
     if args.resume:
 
         clock.resume()
 
-        clock.save(save_path)
+        save_world(
+            clock,
+            registry,
+            world_clock_path,
+            citizen_path
+        )
 
         display_world(clock, config)
 
     # ----------------------------------------------
-    # SPEED CONTROL
+    # SPEED
     # ----------------------------------------------
 
     if args.speed is not None:
@@ -155,6 +358,8 @@ def run_simulation():
         try:
 
             clock.set_speed(args.speed)
+
+            clock.resume()
 
         except ValueError as error:
 
@@ -164,12 +369,36 @@ def run_simulation():
 
             return
 
-        # Changing speed also resumes a paused simulation.
-        clock.resume()
-
-        clock.save(save_path)
+        save_world(
+            clock,
+            registry,
+            world_clock_path,
+            citizen_path
+        )
 
         display_world(clock, config)
+
+    # ----------------------------------------------
+    # DISPLAY CITIZENS
+    # ----------------------------------------------
+
+    if args.citizens:
+
+        display_citizens(registry)
+
+        return
+
+    # ----------------------------------------------
+    # DISPLAY SINGLE CITIZEN
+    # ----------------------------------------------
+
+    if args.citizen:
+
+        citizen = registry.get(args.citizen)
+
+        display_citizen(citizen)
+
+        return
 
     # ----------------------------------------------
     # INITIALIZATION TEST
@@ -178,13 +407,13 @@ def run_simulation():
     if args.once:
 
         console.print(
-            "[bold green]Clock initialization test completed.[/bold green]"
+            "[bold green]ELYSIUM INITIALIZATION SUCCESSFUL[/bold green]"
         )
 
         return
 
     # ----------------------------------------------
-    # START SIMULATION
+    # SIMULATION LOOP
     # ----------------------------------------------
 
     autosave_interval = config["simulation"][
@@ -197,25 +426,13 @@ def run_simulation():
 
     console.print()
 
-    if clock.paused:
-
-        console.print(
-            "[bold yellow]ELYSIUM IS PAUSED[/bold yellow]"
-        )
-
-    else:
-
-        console.print(
-            "[bold green]ELYSIUM SIMULATION STARTED[/bold green]"
-        )
+    console.print(
+        "[bold green]ELYSIUM SIMULATION STARTED[/bold green]"
+    )
 
     console.print(
         "[yellow]Press CTRL+C to stop the simulation.[/yellow]"
     )
-
-    # ----------------------------------------------
-    # MAIN LOOP
-    # ----------------------------------------------
 
     try:
 
@@ -231,11 +448,16 @@ def run_simulation():
                 and current_time - last_save >= autosave_interval
             ):
 
-                clock.save(save_path)
+                save_world(
+                    clock,
+                    registry,
+                    world_clock_path,
+                    citizen_path
+                )
 
                 last_save = time.monotonic()
 
-            # DISPLAY WORLD TIME
+            # DISPLAY WORLD STATUS
             if current_time - last_display >= 5:
 
                 status = clock.get_status(
@@ -251,7 +473,9 @@ def run_simulation():
 
                 console.print(
                     f"[cyan]ELYSIUM TIME:[/cyan] "
-                    f"{status} | {state} | "
+                    f"{status} | "
+                    f"POPULATION: {registry.population} | "
+                    f"{state} | "
                     f"{clock.time_scale}x"
                 )
 
@@ -265,10 +489,15 @@ def run_simulation():
             "\n[yellow]Stopping Elysium...[/yellow]"
         )
 
-        clock.save(save_path)
+        save_world(
+            clock,
+            registry,
+            world_clock_path,
+            citizen_path
+        )
 
         console.print(
-            "[bold green]World saved successfully.[/bold green]"
+            "[bold green]World and citizen data saved.[/bold green]"
         )
 
         console.print(
