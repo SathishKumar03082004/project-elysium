@@ -17,10 +17,12 @@
                 "empathy": 65
             },
             "needs": {
-                "energy": 100,
-                "hunger": 0,
-                "happiness": 75,
-                "health": 100
+                "energy": 99.89713677499999,
+                "hunger": 7.862192005555532,
+                "happiness": 76.18621920055475,
+                "health": 100.0,
+                "social": 23.931096002778126,
+                "comfort": 84.0
             },
             "status": "alive",
             "created_at_world_time": "Year 01 | Month 01 | Day 11 | 01:57:33"
@@ -40,10 +42,12 @@
                 "empathy": 55
             },
             "needs": {
-                "energy": 100,
-                "hunger": 0,
-                "happiness": 75,
-                "health": 100
+                "energy": 98.06890399722172,
+                "hunger": 3.8621920055555328,
+                "happiness": 75.38621920055475,
+                "health": 100.0,
+                "social": 21.931096002778126,
+                "comfort": 80.0
             },
             "status": "alive",
             "created_at_world_time": "Year 01 | Month 01 | Day 11 | 01:57:33"
@@ -63,10 +67,12 @@
                 "empathy": 80
             },
             "needs": {
-                "energy": 100,
-                "hunger": 0,
-                "happiness": 75,
-                "health": 100
+                "energy": 98.06890399722172,
+                "hunger": 3.8621920055555328,
+                "happiness": 75.38621920055475,
+                "health": 100.0,
+                "social": 21.931096002778126,
+                "comfort": 80.0
             },
             "status": "alive",
             "created_at_world_time": "Year 01 | Month 01 | Day 11 | 01:57:33"
@@ -86,10 +92,12 @@
                 "empathy": 95
             },
             "needs": {
-                "energy": 100,
-                "hunger": 0,
-                "happiness": 75,
-                "health": 100
+                "energy": 98.06890399722172,
+                "hunger": 3.8621920055555328,
+                "happiness": 75.38621920055475,
+                "health": 100.0,
+                "social": 21.931096002778126,
+                "comfort": 80.0
             },
             "status": "alive",
             "created_at_world_time": "Year 01 | Month 01 | Day 11 | 01:57:33"
@@ -109,10 +117,12 @@
                 "empathy": 60
             },
             "needs": {
-                "energy": 100,
-                "hunger": 0,
-                "happiness": 75,
-                "health": 100
+                "energy": 98.06890399722172,
+                "hunger": 3.8621920055555328,
+                "happiness": 75.38621920055475,
+                "health": 100.0,
+                "social": 21.931096002778126,
+                "comfort": 80.0
             },
             "status": "alive",
             "created_at_world_time": "Year 01 | Month 01 | Day 11 | 01:57:33"
@@ -132,10 +142,12 @@
                 "empathy": 95
             },
             "needs": {
-                "energy": 100,
-                "hunger": 0,
-                "happiness": 75,
-                "health": 100
+                "energy": 98.06890399722172,
+                "hunger": 3.8621920055555328,
+                "happiness": 75.38621920055475,
+                "health": 100.0,
+                "social": 21.931096002778126,
+                "comfort": 80.0
             },
             "status": "alive",
             "created_at_world_time": "Year 01 | Month 01 | Day 11 | 01:57:33"
@@ -155,10 +167,12 @@
                 "empathy": 80
             },
             "needs": {
-                "energy": 100,
-                "hunger": 0,
-                "happiness": 75,
-                "health": 100
+                "energy": 98.06890399722172,
+                "hunger": 3.8621920055555328,
+                "happiness": 75.38621920055475,
+                "health": 100.0,
+                "social": 21.931096002778126,
+                "comfort": 80.0
             },
             "status": "alive",
             "created_at_world_time": "Year 01 | Month 01 | Day 11 | 01:57:33"
@@ -178,10 +192,12 @@
                 "empathy": 70
             },
             "needs": {
-                "energy": 100,
-                "hunger": 0,
-                "happiness": 75,
-                "health": 100
+                "energy": 98.06890399722172,
+                "hunger": 3.8621920055555328,
+                "happiness": 75.38621920055475,
+                "health": 100.0,
+                "social": 21.931096002778126,
+                "comfort": 80.0
             },
             "status": "alive",
             "created_at_world_time": "Year 01 | Month 01 | Day 11 | 01:57:33"
@@ -201,10 +217,12 @@
                 "empathy": 75
             },
             "needs": {
-                "energy": 100,
-                "hunger": 0,
-                "happiness": 75,
-                "health": 100
+                "energy": 98.06890399722172,
+                "hunger": 3.8621920055555328,
+                "happiness": 75.38621920055475,
+                "health": 100.0,
+                "social": 21.931096002778126,
+                "comfort": 80.0
             },
             "status": "alive",
             "created_at_world_time": "Year 01 | Month 01 | Day 11 | 01:57:33"
@@ -224,10 +242,12 @@
                 "empathy": 85
             },
             "needs": {
-                "energy": 100,
-                "hunger": 0,
-                "happiness": 75,
-                "health": 100
+                "energy": 98.06890399722172,
+                "hunger": 3.8621920055555328,
+                "happiness": 75.38621920055475,
+                "health": 100.0,
+                "social": 21.931096002778126,
+                "comfort": 80.0
             },
             "status": "alive",
             "created_at_world_time": "Year 01 | Month 01 | Day 11 | 01:57:33"

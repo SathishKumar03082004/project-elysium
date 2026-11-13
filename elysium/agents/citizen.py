@@ -22,10 +22,12 @@ class Personality:
 
 @dataclass
 class Needs:
-    energy: int = 100
-    hunger: int = 0
-    happiness: int = 75
-    health: int = 100
+    energy: float = 100.0
+    hunger: float = 0.0
+    happiness: float = 75.0
+    health: float = 100.0
+    social: float = 20.0
+    comfort: float = 80.0
 
     def __post_init__(self):
         for need, value in asdict(self).items():

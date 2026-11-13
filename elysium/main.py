@@ -1,69 +1,50 @@
-
 import argparse
 import time
+from pathlib import Path
 
 from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
 
 from config.settings import ROOT_DIR, load_yaml
-
 from elysium.core.world_clock import WorldClock
-
-from elysium.agents.citizen import Citizen
 from elysium.agents.citizen_factory import CitizenFactory
 from elysium.agents.citizen_registry import CitizenRegistry
+from elysium.simulation.needs_system import NeedsSystem
 
 
 console = Console()
 
+WORLD_CLOCK_PATH = ROOT_DIR / "data" / "world_clock.json"
+CITIZEN_PATH = ROOT_DIR / "data" / "citizens.json"
+NEEDS_STATE_PATH = ROOT_DIR / "data" / "needs_state.json"
 
-# --------------------------------------------------
-# DISPLAY WORLD INFORMATION
-# --------------------------------------------------
 
 def display_world(clock, config):
+    table = Table(title="Project Elysium - World Status")
 
-    calendar_config = config["calendar"]
+    table.add_column("Property", style="cyan")
+    table.add_column("Value", style="green")
 
-    status = clock.get_status(
-        days_per_month=calendar_config["days_per_month"],
-        months_per_year=calendar_config["months_per_year"]
-    )
+    table.add_row("World", config["world"]["name"])
+    table.add_row("Version", config["world"]["version"])
+    table.add_row("Simulation Time", clock.simulation_time.isoformat())
+    table.add_row("Time Scale", f"{clock.time_scale}x")
+    table.add_row("Status", "Paused" if clock.paused else "Running")
 
-    console.print(
-        Panel(
-            f"[bold cyan]PROJECT ELYSIUM[/bold cyan]\n"
-            f"[white]Autonomous AI Civilization[/white]\n\n"
-            f"[green]WORLD TIME: {status}[/green]\n"
-            f"[yellow]CLOCK SPEED: {clock.time_scale}x[/yellow]\n"
-            f"[yellow]STATUS: "
-            f"{'PAUSED' if clock.paused else 'RUNNING'}[/yellow]",
-
-            border_style="cyan"
-        )
-    )
+    console.print(table)
 
 
-# --------------------------------------------------
-# DISPLAY CITIZEN REGISTRY
-# --------------------------------------------------
+def display_citizens(registry):
+    table = Table(title="Elysium Citizens")
 
-def display_citizens(registry: CitizenRegistry):
-
-    table = Table(
-        title="ELYSIUM CITIZEN REGISTRY",
-        border_style="cyan"
-    )
-
-    table.add_column("Citizen ID", style="cyan")
-    table.add_column("Name", style="green")
-    table.add_column("Age", justify="right")
-    table.add_column("Occupation", style="yellow")
-    table.add_column("Status", style="green")
+    table.add_column("ID", style="cyan")
+    table.add_column("Name")
+    table.add_column("Age")
+    table.add_column("Occupation")
+    table.add_column("Status")
 
     for citizen in registry.get_all():
-
         table.add_row(
             citizen.citizen_id,
             citizen.name,
@@ -74,441 +55,272 @@ def display_citizens(registry: CitizenRegistry):
 
     console.print(table)
 
-    console.print(
-        f"[bold green]TOTAL POPULATION: "
-        f"{registry.population}[/bold green]"
-    )
 
-
-# --------------------------------------------------
-# DISPLAY CITIZEN DETAILS
-# --------------------------------------------------
-
-def display_citizen(citizen: Citizen):
-
-    if citizen is None:
-
-        console.print(
-            "[bold red]Citizen not found.[/bold red]"
-        )
-
-        return
-
-    personality = citizen.personality
+def display_needs(citizen):
     needs = citizen.needs
 
-    details = (
-        f"[bold cyan]ID:[/bold cyan] {citizen.citizen_id}\n"
-        f"[bold cyan]Name:[/bold cyan] {citizen.name}\n"
-        f"[bold cyan]Age:[/bold cyan] {citizen.age}\n"
-        f"[bold cyan]Occupation:[/bold cyan] {citizen.occupation}\n"
-        f"[bold cyan]Status:[/bold cyan] {citizen.status}\n\n"
+    table = Table(title=f"{citizen.name} - Needs")
 
-        f"[bold yellow]Biography[/bold yellow]\n"
-        f"{citizen.biography}\n\n"
+    table.add_column("Need", style="cyan")
+    table.add_column("Value", justify="right")
+    table.add_column("Condition")
 
-        f"[bold yellow]Personality[/bold yellow]\n"
-        f"Curiosity: {personality.curiosity}\n"
-        f"Creativity: {personality.creativity}\n"
-        f"Sociability: {personality.sociability}\n"
-        f"Discipline: {personality.discipline}\n"
-        f"Confidence: {personality.confidence}\n"
-        f"Empathy: {personality.empathy}\n\n"
+    need_data = [
+        ("Energy", needs.energy, "High is good"),
+        ("Hunger", needs.hunger, "High is bad"),
+        ("Happiness", needs.happiness, "High is good"),
+        ("Health", needs.health, "High is good"),
+        ("Social", needs.social, "High is bad"),
+        ("Comfort", needs.comfort, "High is good"),
+    ]
 
-        f"[bold yellow]Needs[/bold yellow]\n"
-        f"Energy: {needs.energy}\n"
-        f"Hunger: {needs.hunger}\n"
-        f"Happiness: {needs.happiness}\n"
-        f"Health: {needs.health}\n\n"
+    for name, value, description in need_data:
+        table.add_row(
+            name,
+            f"{value:.1f}/100",
+            description
+        )
 
-        f"[dim]Created: {citizen.created_at_world_time}[/dim]"
-    )
+    console.print(table)
 
+
+def display_citizen(citizen):
     console.print(
         Panel(
-            details,
-            title=f"Citizen Profile: {citizen.name}",
-            border_style="green"
+            f"""
+[cyan]ID:[/cyan] {citizen.citizen_id}
+[cyan]Name:[/cyan] {citizen.name}
+[cyan]Age:[/cyan] {citizen.age}
+[cyan]Occupation:[/cyan] {citizen.occupation}
+[cyan]Status:[/cyan] {citizen.status}
+
+[cyan]Biography:[/cyan]
+{citizen.biography}
+            """,
+            title="Citizen Information"
         )
     )
 
+    display_needs(citizen)
 
-# --------------------------------------------------
-# INITIALIZE CITIZENS
-# --------------------------------------------------
 
-def initialize_citizens(clock, config, save_path):
+def initialize_citizens(clock, config):
+    maximum_population = config["population"]["maximum_population"]
 
-    population_config = config["population"]
-
-    initial_population = population_config["initial_population"]
-
-    maximum_population = population_config["maximum_population"]
-
-    if initial_population > maximum_population:
-
-        raise ValueError(
-            "Initial population exceeds maximum population"
-        )
-
-    registry = CitizenRegistry.load(
-        save_path,
-        maximum_population
+    registry = CitizenRegistry(
+        maximum_population=maximum_population
     )
 
-    # Create the initial population only once.
+    if CITIZEN_PATH.exists():
+        registry = CitizenRegistry.load(
+            CITIZEN_PATH,
+            maximum_population=maximum_population
+        )
+
     if registry.population == 0:
-
-        world_time = clock.get_status(
-            config["calendar"]["days_per_month"],
-            config["calendar"]["months_per_year"]
-        )
+        initial_count = config["population"]["initial_population"]
 
         citizens = CitizenFactory.create_initial_population(
-            count=initial_population,
-            world_time=world_time
+            count=initial_count,
+            world_time=clock.simulation_time.isoformat()
         )
 
         for citizen in citizens:
-
             registry.register(citizen)
 
-        registry.save(save_path)
-
-        console.print(
-            "[bold green]Initial population created successfully.[/bold green]"
-        )
-
-    else:
-
-        console.print(
-            "[green]Existing citizen population restored.[/green]"
-        )
+        registry.save(CITIZEN_PATH)
 
     return registry
 
 
-# --------------------------------------------------
-# INITIALIZE ELYSIUM
-# --------------------------------------------------
+def save_world(clock, registry, needs_system):
+    # Capture time before saving so needs are updated up to that point.
+    clock.tick()
+
+    needs_system.advance(
+        registry,
+        clock.simulation_time
+    )
+
+    registry.save(CITIZEN_PATH)
+    needs_system.save_state(NEEDS_STATE_PATH)
+    clock.save(WORLD_CLOCK_PATH)
+
 
 def initialize_elysium():
-
     config = load_yaml("simulation.yaml")
-
-    world = config["world"]
-
-    world_clock_path = ROOT_DIR / "data" / "world_clock.json"
-
-    citizen_path = ROOT_DIR / "data" / "citizens.json"
 
     clock = WorldClock.from_config(
         config,
-        world_clock_path
+        WORLD_CLOCK_PATH
     )
 
-    registry = initialize_citizens(
-        clock,
-        config,
-        citizen_path
+    registry = initialize_citizens(clock, config)
+
+    needs_system = NeedsSystem()
+
+    # Restore the previous needs update timestamp.
+    needs_system.load_state(
+        NEEDS_STATE_PATH,
+        clock.simulation_time
     )
 
-    console.print()
+    # Apply elapsed simulation time, including offline progress.
+    needs_system.advance(
+        registry,
+        clock.simulation_time
+    )
 
     console.print(
-        f"[bold cyan]{world['name']}[/bold cyan]"
-    )
-
-    console.print(
-        f"Version: {world['version']}"
-    )
-
-    console.print(
-        "[green]WorldClock initialized successfully.[/green]"
+        Panel(
+            "[bold green]PROJECT ELYSIUM[/bold green]\n"
+            "Autonomous AI Civilization\n"
+            "Day 4 - Citizen Needs System",
+            title="Initialization"
+        )
     )
 
     display_world(clock, config)
-
     display_citizens(registry)
 
-    return (
-        clock,
-        registry,
-        config,
-        world_clock_path,
-        citizen_path
-    )
+    return config, clock, registry, needs_system
 
-
-# --------------------------------------------------
-# SAVE WORLD
-# --------------------------------------------------
-
-def save_world(clock, registry, world_clock_path, citizen_path):
-
-    clock.save(world_clock_path)
-
-    registry.save(citizen_path)
-
-
-# --------------------------------------------------
-# SIMULATION LOOP
-# --------------------------------------------------
 
 def run_simulation():
-
     parser = argparse.ArgumentParser(
-        description="Project Elysium World Simulation"
+        description="Project Elysium"
     )
 
+    parser.add_argument("--once", action="store_true")
+    parser.add_argument("--pause", action="store_true")
+    parser.add_argument("--resume", action="store_true")
+    parser.add_argument("--speed", type=float)
+    parser.add_argument("--citizens", action="store_true")
+    parser.add_argument("--citizen", type=str)
     parser.add_argument(
-        "--once",
-        action="store_true",
-        help="Initialize and display the world once"
+        "--activity",
+        nargs=2,
+        metavar=("CITIZEN_ID", "ACTIVITY")
     )
-
     parser.add_argument(
-        "--pause",
-        action="store_true",
-        help="Pause the simulation"
-    )
-
-    parser.add_argument(
-        "--resume",
-        action="store_true",
-        help="Resume the simulation"
-    )
-
-    parser.add_argument(
-        "--speed",
+        "--hours",
         type=float,
-        help="Set simulation speed"
-    )
-
-    parser.add_argument(
-        "--citizens",
-        action="store_true",
-        help="Display all citizens"
-    )
-
-    parser.add_argument(
-        "--citizen",
-        type=str,
-        help="Display a citizen by ID"
+        default=1.0
     )
 
     args = parser.parse_args()
 
     if args.pause and args.resume:
+        parser.error("--pause and --resume cannot be used together.")
 
-        parser.error(
-            "--pause and --resume cannot be used together"
-        )
-
-    (
-        clock,
-        registry,
-        config,
-        world_clock_path,
-        citizen_path
-    ) = initialize_elysium()
-
-    # ----------------------------------------------
-    # PAUSE
-    # ----------------------------------------------
+    config, clock, registry, needs_system = initialize_elysium()
 
     if args.pause:
-
         clock.pause()
-
-        save_world(
-            clock,
-            registry,
-            world_clock_path,
-            citizen_path
-        )
-
-        display_world(clock, config)
-
+        save_world(clock, registry, needs_system)
+        console.print("[yellow]World paused.[/yellow]")
         return
-
-    # ----------------------------------------------
-    # RESUME
-    # ----------------------------------------------
 
     if args.resume:
-
         clock.resume()
-
-        save_world(
-            clock,
-            registry,
-            world_clock_path,
-            citizen_path
-        )
-
-        display_world(clock, config)
-
-    # ----------------------------------------------
-    # SPEED
-    # ----------------------------------------------
+        save_world(clock, registry, needs_system)
+        console.print("[green]World resumed.[/green]")
 
     if args.speed is not None:
+        if args.speed <= 0:
+            parser.error("--speed must be greater than zero.")
 
-        try:
-
-            clock.set_speed(args.speed)
-
-            clock.resume()
-
-        except ValueError as error:
-
-            console.print(
-                f"[bold red]Error: {error}[/bold red]"
-            )
-
-            return
-
-        save_world(
-            clock,
-            registry,
-            world_clock_path,
-            citizen_path
-        )
-
-        display_world(clock, config)
-
-    # ----------------------------------------------
-    # DISPLAY CITIZENS
-    # ----------------------------------------------
-
-    if args.citizens:
-
-        display_citizens(registry)
-
-        return
-
-    # ----------------------------------------------
-    # DISPLAY SINGLE CITIZEN
-    # ----------------------------------------------
-
-    if args.citizen:
-
-        citizen = registry.get(args.citizen)
-
-        display_citizen(citizen)
-
-        return
-
-    # ----------------------------------------------
-    # INITIALIZATION TEST
-    # ----------------------------------------------
-
-    if args.once:
+        clock.set_speed(args.speed)
+        save_world(clock, registry, needs_system)
 
         console.print(
-            "[bold green]ELYSIUM INITIALIZATION SUCCESSFUL[/bold green]"
+            f"[green]Simulation speed set to {args.speed}x.[/green]"
         )
 
+    if args.activity:
+        citizen_id, activity = args.activity
+
+        citizen = registry.get(citizen_id)
+
+        if citizen is None:
+            console.print(
+                f"[red]Citizen {citizen_id} not found.[/red]"
+            )
+            return
+
+        try:
+            needs_system.apply_activity(
+                citizen,
+                activity,
+                args.hours
+            )
+        except ValueError as error:
+            console.print(f"[red]{error}[/red]")
+            return
+
+        save_world(clock, registry, needs_system)
+
+        console.print(
+            f"[green]{citizen.name} performed {activity} "
+            f"for {args.hours} simulation hour(s).[/green]"
+        )
+
+        display_needs(citizen)
         return
 
-    # ----------------------------------------------
-    # SIMULATION LOOP
-    # ----------------------------------------------
+    if args.citizens:
+        display_citizens(registry)
+        return
 
-    autosave_interval = config["simulation"][
-        "autosave_interval_seconds"
-    ]
+    if args.citizen:
+        citizen = registry.get(args.citizen)
 
-    last_save = time.monotonic()
+        if citizen is None:
+            console.print("[red]Citizen not found.[/red]")
+            return
 
-    last_display = time.monotonic()
+        display_citizen(citizen)
+        return
 
-    console.print()
+    if args.once:
+        save_world(clock, registry, needs_system)
+        return
 
-    console.print(
-        "[bold green]ELYSIUM SIMULATION STARTED[/bold green]"
+    autosave_interval = config["simulation"].get(
+        "autosave_interval_seconds",
+        10
     )
 
+    last_autosave = time.monotonic()
+
     console.print(
-        "[yellow]Press CTRL+C to stop the simulation.[/yellow]"
+        "[green]Elysium simulation started. Press Ctrl+C to stop.[/green]"
     )
 
     try:
-
         while True:
-
             clock.tick()
 
-            current_time = time.monotonic()
+            needs_system.advance(
+                registry,
+                clock.simulation_time
+            )
 
-            # AUTOSAVE
-            if (
-                config["system"]["autosave_enabled"]
-                and current_time - last_save >= autosave_interval
-            ):
+            if time.monotonic() - last_autosave >= autosave_interval:
+                save_world(clock, registry, needs_system)
+                last_autosave = time.monotonic()
 
-                save_world(
-                    clock,
-                    registry,
-                    world_clock_path,
-                    citizen_path
-                )
-
-                last_save = time.monotonic()
-
-            # DISPLAY WORLD STATUS
-            if current_time - last_display >= 5:
-
-                status = clock.get_status(
-                    config["calendar"]["days_per_month"],
-                    config["calendar"]["months_per_year"]
-                )
-
-                state = (
-                    "PAUSED"
-                    if clock.paused
-                    else "RUNNING"
-                )
-
-                console.print(
-                    f"[cyan]ELYSIUM TIME:[/cyan] "
-                    f"{status} | "
-                    f"POPULATION: {registry.population} | "
-                    f"{state} | "
-                    f"{clock.time_scale}x"
-                )
-
-                last_display = time.monotonic()
-
-            time.sleep(1)
+            time.sleep(0.1)
 
     except KeyboardInterrupt:
+        console.print("\n[yellow]Saving civilization...[/yellow]")
+
+        save_world(clock, registry, needs_system)
 
         console.print(
-            "\n[yellow]Stopping Elysium...[/yellow]"
+            "[bold green]Project Elysium saved successfully.[/bold green]"
         )
 
-        save_world(
-            clock,
-            registry,
-            world_clock_path,
-            citizen_path
-        )
-
-        console.print(
-            "[bold green]World and citizen data saved.[/bold green]"
-        )
-
-        console.print(
-            "[bold cyan]ELYSIUM SHUTDOWN COMPLETE[/bold cyan]"
-        )
-
-
-# --------------------------------------------------
-# ENTRY POINT
-# --------------------------------------------------
 
 if __name__ == "__main__":
-
     run_simulation()
