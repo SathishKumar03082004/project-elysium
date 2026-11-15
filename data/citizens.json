@@ -17,15 +17,17 @@
                 "empathy": 65
             },
             "needs": {
-                "energy": 99.89713677499999,
-                "hunger": 7.862192005555532,
-                "happiness": 76.18621920055475,
+                "energy": 97.12282948333306,
+                "hunger": 47.466533038889246,
+                "happiness": 88.21121920055467,
                 "health": 100.0,
-                "social": 23.931096002778126,
-                "comfort": 84.0
+                "social": 59.75826651944452,
+                "comfort": 100.0
             },
             "status": "alive",
-            "created_at_world_time": "Year 01 | Month 01 | Day 11 | 01:57:33"
+            "created_at_world_time": "Year 01 | Month 01 | Day 11 | 01:57:33",
+            "current_activity": "idle",
+            "activity_remaining_hours": 0.12282948333332523
         },
         {
             "citizen_id": "CIT-0002",
@@ -42,15 +44,17 @@
                 "empathy": 55
             },
             "needs": {
-                "energy": 98.06890399722172,
-                "hunger": 3.8621920055555328,
-                "happiness": 75.38621920055475,
+                "energy": 96.33949614999976,
+                "hunger": 44.68319970555586,
+                "happiness": 86.80288586722133,
                 "health": 100.0,
-                "social": 21.931096002778126,
-                "comfort": 80.0
+                "social": 57.758266519444476,
+                "comfort": 100.0
             },
             "status": "alive",
-            "created_at_world_time": "Year 01 | Month 01 | Day 11 | 01:57:33"
+            "created_at_world_time": "Year 01 | Month 01 | Day 11 | 01:57:33",
+            "current_activity": "idle",
+            "activity_remaining_hours": 0.3394961500000231
         },
         {
             "citizen_id": "CIT-0003",
@@ -67,15 +71,17 @@
                 "empathy": 80
             },
             "needs": {
-                "energy": 98.06890399722172,
-                "hunger": 3.8621920055555328,
-                "happiness": 75.38621920055475,
+                "energy": 95.07282948333305,
+                "hunger": 44.91653303888928,
+                "happiness": 86.68621920055466,
                 "health": 100.0,
-                "social": 21.931096002778126,
-                "comfort": 80.0
+                "social": 57.75826651944453,
+                "comfort": 100.0
             },
             "status": "alive",
-            "created_at_world_time": "Year 01 | Month 01 | Day 11 | 01:57:33"
+            "created_at_world_time": "Year 01 | Month 01 | Day 11 | 01:57:33",
+            "current_activity": "idle",
+            "activity_remaining_hours": 0.5728294833333103
         },
         {
             "citizen_id": "CIT-0004",
@@ -92,15 +98,17 @@
                 "empathy": 95
             },
             "needs": {
-                "energy": 98.06890399722172,
-                "hunger": 3.8621920055555328,
-                "happiness": 75.38621920055475,
+                "energy": 91.56162816666686,
+                "hunger": 44.34370355555544,
+                "happiness": 86.97263394222104,
                 "health": 100.0,
-                "social": 21.931096002778126,
-                "comfort": 80.0
+                "social": 57.758266519444504,
+                "comfort": 99.90308140833304
             },
             "status": "alive",
-            "created_at_world_time": "Year 01 | Month 01 | Day 11 | 01:57:33"
+            "created_at_world_time": "Year 01 | Month 01 | Day 11 | 01:57:33",
+            "current_activity": "work",
+            "activity_remaining_hours": 3.8061628166666717
         },
         {
             "citizen_id": "CIT-0005",
@@ -117,15 +125,17 @@
                 "empathy": 60
             },
             "needs": {
-                "energy": 98.06890399722172,
-                "hunger": 3.8621920055555328,
-                "happiness": 75.38621920055475,
+                "energy": 73.72829483333355,
+                "hunger": 46.34370355555543,
+                "happiness": 85.97263394222104,
                 "health": 100.0,
-                "social": 21.931096002778126,
-                "comfort": 80.0
+                "social": 57.758266519444504,
+                "comfort": 99.01141474166637
             },
             "status": "alive",
-            "created_at_world_time": "Year 01 | Month 01 | Day 11 | 01:57:33"
+            "created_at_world_time": "Year 01 | Month 01 | Day 11 | 01:57:33",
+            "current_activity": "work",
+            "activity_remaining_hours": 2.0228294833333402
         },
         {
             "citizen_id": "CIT-0006",
@@ -142,15 +152,17 @@
                 "empathy": 95
             },
             "needs": {
-                "energy": 98.06890399722172,
-                "hunger": 3.8621920055555328,
-                "happiness": 75.38621920055475,
+                "energy": 56.06162816666659,
+                "hunger": 47.34370355555547,
+                "happiness": 85.47263394222102,
                 "health": 100.0,
-                "social": 21.931096002778126,
-                "comfort": 80.0
+                "social": 57.75826651944452,
+                "comfort": 98.12808140833303
             },
             "status": "alive",
-            "created_at_world_time": "Year 01 | Month 01 | Day 11 | 01:57:33"
+            "created_at_world_time": "Year 01 | Month 01 | Day 11 | 01:57:33",
+            "current_activity": "work",
+            "activity_remaining_hours": 0.25616281666665186
         },
         {
             "citizen_id": "CIT-0007",
@@ -167,15 +179,17 @@
                 "empathy": 80
             },
             "needs": {
-                "energy": 98.06890399722172,
-                "hunger": 3.8621920055555328,
-                "happiness": 75.38621920055475,
+                "energy": 38.22829483333356,
+                "hunger": 47.343703555555386,
+                "happiness": 85.47263394222104,
                 "health": 100.0,
-                "social": 21.931096002778126,
-                "comfort": 80.0
+                "social": 57.75826651944449,
+                "comfort": 98.23641474166638
             },
             "status": "alive",
-            "created_at_world_time": "Year 01 | Month 01 | Day 11 | 01:57:33"
+            "created_at_world_time": "Year 01 | Month 01 | Day 11 | 01:57:33",
+            "current_activity": "work",
+            "activity_remaining_hours": 2.4728294833333573
         },
         {
             "citizen_id": "CIT-0008",
@@ -192,15 +206,17 @@
                 "empathy": 70
             },
             "needs": {
-                "energy": 98.06890399722172,
-                "hunger": 3.8621920055555328,
-                "happiness": 75.38621920055475,
+                "energy": 20.561628166666953,
+                "hunger": 47.343703555555344,
+                "happiness": 85.47263394222105,
                 "health": 100.0,
-                "social": 21.931096002778126,
-                "comfort": 80.0
+                "social": 57.758266519444476,
+                "comfort": 97.35308140833305
             },
             "status": "alive",
-            "created_at_world_time": "Year 01 | Month 01 | Day 11 | 01:57:33"
+            "created_at_world_time": "Year 01 | Month 01 | Day 11 | 01:57:33",
+            "current_activity": "work",
+            "activity_remaining_hours": 0.7061628166666929
         },
         {
             "citizen_id": "CIT-0009",
@@ -217,15 +233,17 @@
                 "empathy": 75
             },
             "needs": {
-                "energy": 98.06890399722172,
-                "hunger": 3.8621920055555328,
-                "happiness": 75.38621920055475,
+                "energy": 34.71007700000026,
+                "hunger": 45.22269585555526,
+                "happiness": 86.2149866372209,
                 "health": 100.0,
-                "social": 21.931096002778126,
-                "comfort": 80.0
+                "social": 57.22801459444492,
+                "comfort": 98.06050385000027
             },
             "status": "alive",
-            "created_at_world_time": "Year 01 | Month 01 | Day 11 | 01:57:33"
+            "created_at_world_time": "Year 01 | Month 01 | Day 11 | 01:57:33",
+            "current_activity": "sleep",
+            "activity_remaining_hours": 6.939496149999973
         },
         {
             "citizen_id": "CIT-0010",
@@ -242,15 +260,17 @@
                 "empathy": 85
             },
             "needs": {
-                "energy": 98.06890399722172,
-                "hunger": 3.8621920055555328,
-                "happiness": 75.38621920055475,
+                "energy": 60.87674366666632,
+                "hunger": 41.65602918888855,
+                "happiness": 87.61331997055424,
                 "health": 100.0,
-                "social": 21.931096002778126,
-                "comfort": 80.0
+                "social": 56.58634792777824,
+                "comfort": 99.34383718333358
             },
             "status": "alive",
-            "created_at_world_time": "Year 01 | Month 01 | Day 11 | 01:57:33"
+            "created_at_world_time": "Year 01 | Month 01 | Day 11 | 01:57:33",
+            "current_activity": "sleep",
+            "activity_remaining_hours": 5.65616281666667
         }
     ]
 }

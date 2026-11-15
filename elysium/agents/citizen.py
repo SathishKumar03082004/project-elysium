@@ -58,6 +58,9 @@ class Citizen:
 
     created_at_world_time: str = "Year 01 | Month 01 | Day 01"
 
+    current_activity: str = "idle"
+    activity_remaining_hours: float = 0.0
+
     def __post_init__(self):
 
         if not self.citizen_id:
@@ -68,6 +71,13 @@ class Citizen:
 
         if self.age <= 0:
             raise ValueError("Citizen age must be positive")
+
+        if not self.current_activity.strip():
+            raise ValueError("Current activity cannot be empty")
+
+        if self.activity_remaining_hours < 0:
+            raise ValueError("Activity remaining hours cannot be negative")
+
 
     def to_dict(self) -> dict[str, Any]:
 
@@ -80,7 +90,9 @@ class Citizen:
             "personality": asdict(self.personality),
             "needs": asdict(self.needs),
             "status": self.status,
-            "created_at_world_time": self.created_at_world_time
+            "created_at_world_time": self.created_at_world_time,
+            "current_activity": self.current_activity,
+            "activity_remaining_hours": self.activity_remaining_hours
         }
 
     @classmethod
@@ -106,5 +118,8 @@ class Citizen:
             created_at_world_time=data.get(
                 "created_at_world_time",
                 "Year 01 | Month 01 | Day 01"
-            )
+            ),
+
+            current_activity=data.get("current_activity", "idle"),
+            activity_remaining_hours=data.get("activity_remaining_hours", 0.0)
         )

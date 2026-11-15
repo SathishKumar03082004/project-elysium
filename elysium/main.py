@@ -1,24 +1,32 @@
+
 import argparse
 import time
-from pathlib import Path
 
 from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
 
 from config.settings import ROOT_DIR, load_yaml
+
 from elysium.core.world_clock import WorldClock
 from elysium.agents.citizen_factory import CitizenFactory
 from elysium.agents.citizen_registry import CitizenRegistry
+
 from elysium.simulation.needs_system import NeedsSystem
+from elysium.simulation.activity_system import ActivitySystem
 
 
 console = Console()
 
+# Persistent data paths
 WORLD_CLOCK_PATH = ROOT_DIR / "data" / "world_clock.json"
 CITIZEN_PATH = ROOT_DIR / "data" / "citizens.json"
 NEEDS_STATE_PATH = ROOT_DIR / "data" / "needs_state.json"
 
+
+# ---------------------------------------------------------
+# DISPLAY FUNCTIONS
+# ---------------------------------------------------------
 
 def display_world(clock, config):
     table = Table(title="Project Elysium - World Status")
@@ -28,9 +36,15 @@ def display_world(clock, config):
 
     table.add_row("World", config["world"]["name"])
     table.add_row("Version", config["world"]["version"])
-    table.add_row("Simulation Time", clock.simulation_time.isoformat())
+    table.add_row(
+        "Simulation Time",
+        clock.simulation_time.isoformat()
+    )
     table.add_row("Time Scale", f"{clock.time_scale}x")
-    table.add_row("Status", "Paused" if clock.paused else "Running")
+    table.add_row(
+        "Status",
+        "Paused" if clock.paused else "Running"
+    )
 
     console.print(table)
 
@@ -42,6 +56,7 @@ def display_citizens(registry):
     table.add_column("Name")
     table.add_column("Age")
     table.add_column("Occupation")
+    table.add_column("Activity", style="green")
     table.add_column("Status")
 
     for citizen in registry.get_all():
@@ -50,6 +65,7 @@ def display_citizens(registry):
             citizen.name,
             str(citizen.age),
             citizen.occupation,
+            citizen.current_activity.capitalize(),
             citizen.status
         )
 
@@ -96,6 +112,12 @@ def display_citizen(citizen):
 
 [cyan]Biography:[/cyan]
 {citizen.biography}
+
+[cyan]Current Activity:[/cyan]
+{citizen.current_activity.capitalize()}
+
+[cyan]Remaining Activity Hours:[/cyan]
+{citizen.activity_remaining_hours:.2f}
             """,
             title="Citizen Information"
         )
@@ -103,6 +125,31 @@ def display_citizen(citizen):
 
     display_needs(citizen)
 
+
+def display_activities(registry):
+    table = Table(title="Citizen Activities")
+
+    table.add_column("Citizen ID", style="cyan")
+    table.add_column("Name")
+    table.add_column("Occupation")
+    table.add_column("Current Activity", style="green")
+    table.add_column("Remaining Hours", justify="right")
+
+    for citizen in registry.get_all():
+        table.add_row(
+            citizen.citizen_id,
+            citizen.name,
+            citizen.occupation,
+            citizen.current_activity.capitalize(),
+            f"{citizen.activity_remaining_hours:.2f}"
+        )
+
+    console.print(table)
+
+
+# ---------------------------------------------------------
+# CITIZEN INITIALIZATION
+# ---------------------------------------------------------
 
 def initialize_citizens(clock, config):
     maximum_population = config["population"]["maximum_population"]
@@ -133,19 +180,87 @@ def initialize_citizens(clock, config):
     return registry
 
 
-def save_world(clock, registry, needs_system):
-    # Capture time before saving so needs are updated up to that point.
+# ---------------------------------------------------------
+# WORLD ADVANCEMENT
+# ---------------------------------------------------------
+
+def advance_world(
+    clock,
+    registry,
+    needs_system,
+    activity_system
+):
+    """
+    Advance the world clock and update all citizen activities.
+
+    The activity system receives elapsed simulation seconds,
+    not real-world seconds.
+    """
+
+    previous_time = needs_system.last_update_simulation_time
+
     clock.tick()
 
-    needs_system.advance(
-        registry,
+    if previous_time is None:
+        needs_system.last_update_simulation_time = (
+            clock.simulation_time
+        )
+        return
+
+    elapsed_seconds = (
+        clock.simulation_time - previous_time
+    ).total_seconds()
+
+    if elapsed_seconds > 0:
+        activity_system.advance(
+            registry,
+            elapsed_seconds,
+            needs_system,
+            previous_time
+        )
+
+    needs_system.last_update_simulation_time = (
         clock.simulation_time
     )
 
-    registry.save(CITIZEN_PATH)
-    needs_system.save_state(NEEDS_STATE_PATH)
-    clock.save(WORLD_CLOCK_PATH)
 
+# ---------------------------------------------------------
+# SAVE WORLD
+# ---------------------------------------------------------
+
+def save_world(
+    clock,
+    registry,
+    needs_system,
+    activity_system
+):
+    """Update and persist all world systems."""
+
+    advance_world(
+        clock,
+        registry,
+        needs_system,
+        activity_system
+    )
+
+    registry.save(CITIZEN_PATH)
+
+    needs_system.save_state(
+        NEEDS_STATE_PATH
+    )
+
+    clock.save(
+        WORLD_CLOCK_PATH
+    )
+
+    console.print(
+        "[dim]World state saved.[/dim]"
+    )
+
+
+# ---------------------------------------------------------
+# INITIALIZE ELYSIUM
+# ---------------------------------------------------------
 
 def initialize_elysium():
     config = load_yaml("simulation.yaml")
@@ -155,9 +270,13 @@ def initialize_elysium():
         WORLD_CLOCK_PATH
     )
 
-    registry = initialize_citizens(clock, config)
+    registry = initialize_citizens(
+        clock,
+        config
+    )
 
     needs_system = NeedsSystem()
+    activity_system = ActivitySystem()
 
     # Restore the previous needs update timestamp.
     needs_system.load_state(
@@ -165,9 +284,23 @@ def initialize_elysium():
         clock.simulation_time
     )
 
-    # Apply elapsed simulation time, including offline progress.
-    needs_system.advance(
-        registry,
+    # Catch up activities during offline simulation time.
+    previous_time = needs_system.last_update_simulation_time
+
+    if previous_time is not None:
+        elapsed_seconds = (
+            clock.simulation_time - previous_time
+        ).total_seconds()
+
+        if elapsed_seconds > 0:
+            activity_system.advance(
+                registry,
+                elapsed_seconds,
+                needs_system,
+                previous_time
+            )
+
+    needs_system.last_update_simulation_time = (
         clock.simulation_time
     )
 
@@ -175,7 +308,7 @@ def initialize_elysium():
         Panel(
             "[bold green]PROJECT ELYSIUM[/bold green]\n"
             "Autonomous AI Civilization\n"
-            "Day 4 - Citizen Needs System",
+            "Day 5 - Citizen Activity System",
             title="Initialization"
         )
     )
@@ -183,59 +316,166 @@ def initialize_elysium():
     display_world(clock, config)
     display_citizens(registry)
 
-    return config, clock, registry, needs_system
-
-
-def run_simulation():
-    parser = argparse.ArgumentParser(
-        description="Project Elysium"
+    return (
+        config,
+        clock,
+        registry,
+        needs_system,
+        activity_system
     )
 
-    parser.add_argument("--once", action="store_true")
-    parser.add_argument("--pause", action="store_true")
-    parser.add_argument("--resume", action="store_true")
-    parser.add_argument("--speed", type=float)
-    parser.add_argument("--citizens", action="store_true")
-    parser.add_argument("--citizen", type=str)
+
+# ---------------------------------------------------------
+# MAIN SIMULATION
+# ---------------------------------------------------------
+
+def run_simulation():
+
+    parser = argparse.ArgumentParser(
+        description="Project Elysium - AI Civilization"
+    )
+
+    # World controls
+    parser.add_argument(
+        "--once",
+        action="store_true",
+        help="Initialize, update and save once"
+    )
+
+    parser.add_argument(
+        "--pause",
+        action="store_true",
+        help="Pause the saved simulation"
+    )
+
+    parser.add_argument(
+        "--resume",
+        action="store_true",
+        help="Resume the simulation"
+    )
+
+    parser.add_argument(
+        "--speed",
+        type=float,
+        help="Set simulation speed"
+    )
+
+    # Citizen inspection
+    parser.add_argument(
+        "--citizens",
+        action="store_true",
+        help="Display all citizens"
+    )
+
+    parser.add_argument(
+        "--citizen",
+        type=str,
+        help="Inspect a citizen by ID"
+    )
+
+    # Activity inspection
+    parser.add_argument(
+        "--activities",
+        action="store_true",
+        help="Display all citizen activities"
+    )
+
+    # Manual activity assignment
     parser.add_argument(
         "--activity",
         nargs=2,
-        metavar=("CITIZEN_ID", "ACTIVITY")
+        metavar=("CITIZEN_ID", "ACTIVITY"),
+        help="Assign an activity to a citizen"
     )
+
     parser.add_argument(
         "--hours",
         type=float,
-        default=1.0
+        default=1.0,
+        help="Activity duration in simulation hours"
     )
 
     args = parser.parse_args()
 
     if args.pause and args.resume:
-        parser.error("--pause and --resume cannot be used together.")
+        parser.error(
+            "--pause and --resume cannot be used together."
+        )
 
-    config, clock, registry, needs_system = initialize_elysium()
+    if args.hours <= 0:
+        parser.error("--hours must be greater than zero.")
+
+    if args.speed is not None and args.speed <= 0:
+        parser.error("--speed must be greater than zero.")
+
+    # Initialize all five components.
+    (
+        config,
+        clock,
+        registry,
+        needs_system,
+        activity_system
+    ) = initialize_elysium()
+
+    # -----------------------------------------------------
+    # PAUSE
+    # -----------------------------------------------------
 
     if args.pause:
         clock.pause()
-        save_world(clock, registry, needs_system)
-        console.print("[yellow]World paused.[/yellow]")
+
+        save_world(
+            clock,
+            registry,
+            needs_system,
+            activity_system
+        )
+
+        console.print(
+            "[yellow]World paused.[/yellow]"
+        )
         return
+
+    # -----------------------------------------------------
+    # RESUME
+    # -----------------------------------------------------
 
     if args.resume:
         clock.resume()
-        save_world(clock, registry, needs_system)
-        console.print("[green]World resumed.[/green]")
 
-    if args.speed is not None:
-        if args.speed <= 0:
-            parser.error("--speed must be greater than zero.")
-
-        clock.set_speed(args.speed)
-        save_world(clock, registry, needs_system)
+        save_world(
+            clock,
+            registry,
+            needs_system,
+            activity_system
+        )
 
         console.print(
-            f"[green]Simulation speed set to {args.speed}x.[/green]"
+            "[green]World resumed.[/green]"
         )
+
+    # -----------------------------------------------------
+    # SPEED
+    # -----------------------------------------------------
+
+    if args.speed is not None:
+        clock.set_speed(args.speed)
+
+        save_world(
+            clock,
+            registry,
+            needs_system,
+            activity_system
+        )
+
+        console.print(
+            f"[green]Simulation speed set to "
+            f"{args.speed}x.[/green]"
+        )
+
+    # -----------------------------------------------------
+    # MANUAL ACTIVITY
+    # -----------------------------------------------------
 
     if args.activity:
         citizen_id, activity = args.activity
@@ -249,42 +489,82 @@ def run_simulation():
             return
 
         try:
-            needs_system.apply_activity(
+            activity_system.start_activity(
                 citizen,
                 activity,
                 args.hours
             )
+
+            save_world(
+                clock,
+                registry,
+                needs_system,
+                activity_system
+            )
+
+            console.print(
+                f"[green]{citizen.name} started "
+                f"{activity} for {args.hours} "
+                f"simulation hours.[/green]"
+            )
+
+            display_citizen(citizen)
+
         except ValueError as error:
-            console.print(f"[red]{error}[/red]")
-            return
+            console.print(
+                f"[red]{error}[/red]"
+            )
 
-        save_world(clock, registry, needs_system)
-
-        console.print(
-            f"[green]{citizen.name} performed {activity} "
-            f"for {args.hours} simulation hour(s).[/green]"
-        )
-
-        display_needs(citizen)
         return
+
+    # -----------------------------------------------------
+    # DISPLAY CITIZENS
+    # -----------------------------------------------------
 
     if args.citizens:
         display_citizens(registry)
         return
 
+    # -----------------------------------------------------
+    # DISPLAY ONE CITIZEN
+    # -----------------------------------------------------
+
     if args.citizen:
         citizen = registry.get(args.citizen)
 
         if citizen is None:
-            console.print("[red]Citizen not found.[/red]")
+            console.print(
+                "[red]Citizen not found.[/red]"
+            )
             return
 
         display_citizen(citizen)
         return
 
-    if args.once:
-        save_world(clock, registry, needs_system)
+    # -----------------------------------------------------
+    # DISPLAY ACTIVITIES
+    # -----------------------------------------------------
+
+    if args.activities:
+        display_activities(registry)
         return
+
+    # -----------------------------------------------------
+    # RUN ONCE
+    # -----------------------------------------------------
+
+    if args.once:
+        save_world(
+            clock,
+            registry,
+            needs_system,
+            activity_system
+        )
+        return
+
+    # -----------------------------------------------------
+    # CONTINUOUS SIMULATION
+    # -----------------------------------------------------
 
     autosave_interval = config["simulation"].get(
         "autosave_interval_seconds",
@@ -294,33 +574,62 @@ def run_simulation():
     last_autosave = time.monotonic()
 
     console.print(
-        "[green]Elysium simulation started. Press Ctrl+C to stop.[/green]"
+        "[bold green]Elysium simulation started.[/bold green]"
+    )
+
+    console.print(
+        "[dim]Press Ctrl+C to save and stop.[/dim]"
     )
 
     try:
         while True:
-            clock.tick()
 
-            needs_system.advance(
+            # Advance clock and all citizen activities.
+            advance_world(
+                clock,
                 registry,
-                clock.simulation_time
+                needs_system,
+                activity_system
             )
 
-            if time.monotonic() - last_autosave >= autosave_interval:
-                save_world(clock, registry, needs_system)
+            # Periodic autosave.
+            if (
+                time.monotonic() - last_autosave
+                >= autosave_interval
+            ):
+
+                save_world(
+                    clock,
+                    registry,
+                    needs_system,
+                    activity_system
+                )
+
                 last_autosave = time.monotonic()
 
             time.sleep(0.1)
 
     except KeyboardInterrupt:
-        console.print("\n[yellow]Saving civilization...[/yellow]")
 
-        save_world(clock, registry, needs_system)
+        console.print(
+            "\n[yellow]Saving civilization...[/yellow]"
+        )
+
+        save_world(
+            clock,
+            registry,
+            needs_system,
+            activity_system
+        )
 
         console.print(
             "[bold green]Project Elysium saved successfully.[/bold green]"
         )
 
+
+# ---------------------------------------------------------
+# APPLICATION ENTRY POINT
+# ---------------------------------------------------------
 
 if __name__ == "__main__":
     run_simulation()
